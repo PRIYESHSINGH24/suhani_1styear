@@ -11,6 +11,7 @@ A desktop application built with **Java 17 + Swing** and **PostgreSQL** for mana
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
 - [Database Setup](#database-setup)
+- [Windows Quick Start](#windows-quick-start)
 - [How to Run](#how-to-run)
 - [Default Login](#default-login)
 - [Seed Data](#seed-data)
@@ -131,6 +132,91 @@ psql -d "Hesap-eProject" -f db/init.sql
 ```
 
 This creates all 11 tables and inserts default sample data.
+
+---
+
+## Windows Quick Start
+
+Use this section if you want the fastest way to run the project on Windows.
+
+### 1. Install prerequisites
+
+- Install Java 17 or newer.
+- Install PostgreSQL 15 or newer.
+- Confirm JDBC driver exists: `libs\postgresql-42.7.5.jar`
+
+### 2. Open PowerShell in project folder
+
+In File Explorer, open this project folder and then open PowerShell there.
+
+### 3. Open `psql`
+
+If `psql` is in your PATH:
+
+```powershell
+psql -U postgres -d postgres -h localhost -p 5432
+```
+
+If not in PATH, use full path (adjust version if needed):
+
+```powershell
+& "C:\Program Files\PostgreSQL\15\bin\psql.exe" -U postgres -d postgres -h localhost -p 5432
+```
+
+### 4. Create project database and user
+
+Run in `psql`:
+
+```sql
+CREATE USER "Hesap-eProject" WITH PASSWORD '.hesap-eProject.';
+CREATE DATABASE "Hesap-eProject" OWNER "Hesap-eProject";
+\q
+```
+
+### 5. Create login table and default admin
+
+```powershell
+psql -U postgres -d "Hesap-eProject" -h localhost -p 5432
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS auth (
+   id SERIAL PRIMARY KEY,
+   username VARCHAR(50) NOT NULL UNIQUE,
+   password VARCHAR(255) NOT NULL,
+   date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO auth (username, password)
+SELECT 'admin', 'admin'
+WHERE NOT EXISTS (SELECT 1 FROM auth WHERE username = 'admin');
+\q
+```
+
+### 6. Run schema and seed data
+
+```powershell
+psql -U postgres -d "Hesap-eProject" -h localhost -p 5432 -f db\init.sql
+```
+
+### 7. Compile
+
+```powershell
+New-Item -ItemType Directory -Force out | Out-Null
+$files = Get-ChildItem -Recurse -Filter *.java src | ForEach-Object { $_.FullName }
+javac -d out -cp "libs\postgresql-42.7.5.jar" $files
+```
+
+### 8. Run
+
+```powershell
+java -cp "out;libs\postgresql-42.7.5.jar" com.cbozan.main.Main
+```
+
+### 9. Login
+
+- Username: `admin`
+- Password: `admin`
 
 ---
 
